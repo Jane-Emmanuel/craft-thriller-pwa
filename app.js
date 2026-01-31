@@ -1,11 +1,45 @@
+
+ 
+
 const EDIT_PASSPHRASE = "craftthriller2026";
 let editMode = false;
 let typed = "";
 
-// Load saved content if exists
-const saved = localStorage.getItem("craftThrillerContent");
-if (saved) artworks = JSON.parse(saved);
+// ================================
+// LOAD SAVED DATA
+// ================================
+let artworks = [
+  // Example placeholder (replace via drag & drop)
+  { title: "New Artwork", type: "image", src: "", story: "Write the story behind this artwork..." }
+];
 
+// Load saved artworks
+const saved = localStorage.getItem("craftThrillerContent");
+if(saved) artworks = JSON.parse(saved);
+
+// Load saved logo
+const savedLogo = localStorage.getItem("craftThrillerLogo");
+if(savedLogo){
+  const logoImg = document.getElementById("logo-img");
+  if(logoImg) logoImg.src = savedLogo;
+}
+
+// Load saved banner
+const savedBanner = localStorage.getItem("craftThrillerBanner");
+if(savedBanner){
+  const bannerImg = document.getElementById("banner-img");
+  if(bannerImg) bannerImg.src = savedBanner;
+}
+
+// Load saved background
+const savedBg = localStorage.getItem("craftThrillerBackground");
+if(savedBg){
+  document.body.style.backgroundImage = `url(${savedBg})`;
+}
+
+// ================================
+// DISPLAY ARTWORKS
+// ================================
 const gallery = document.getElementById("gallery");
 
 function displayArtworks() {
@@ -46,7 +80,12 @@ function displayArtworks() {
   });
 }
 
-// --- EDIT MODE UNLOCK ---
+// Initial display
+displayArtworks();
+
+// ================================
+// EDIT MODE UNLOCK (KEYBOARD)
+// ================================
 document.addEventListener("keydown", (e) => {
   typed += e.key.toLowerCase();
   if (typed.includes(EDIT_PASSPHRASE)) {
@@ -56,14 +95,9 @@ document.addEventListener("keydown", (e) => {
   if (typed.length > 40) typed = "";
 });
 
-function enableEditMode() {
-  editMode = true;
-  document.body.classList.add("edit-mode");
-  alert("Edit Mode Enabled — The Craft Thriller");
-  displayArtworks();
-}
-
-// --- MOBILE GESTURE UNLOCK ---
+// ================================
+// EDIT MODE UNLOCK (MOBILE GESTURE)
+// ================================
 let tapCount = 0;
 let tapTimer = null;
 
@@ -76,17 +110,64 @@ document.addEventListener("touchstart", (e) => {
   }
 });
 
-// --- DRAG & DROP MEDIA ---
+function enableEditMode() {
+  editMode = true;
+  document.body.classList.add("edit-mode");
+  alert("Edit Mode Enabled — The Craft Thriller");
+  displayArtworks();
+}
+
+// ================================
+// VIDEO AUTOPLAY ON SCROLL
+// ================================
+const videoObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    const video = entry.target;
+    if(entry.isIntersecting && entry.intersectionRatio>0.6) video.play().catch(()=>{});
+    else video.pause();
+  });
+},{threshold:[0.6]});
+
+// ================================
+// DRAG & DROP MEDIA / LOGO / BANNER / BACKGROUND
+// ================================
 document.addEventListener("dragover", e => { if(editMode) e.preventDefault(); });
+
 document.addEventListener("drop", e => {
   if(!editMode) return;
-  const media = e.target.closest("img, video");
-  if(!media) return;
   e.preventDefault();
   const file = e.dataTransfer.files[0];
   if(!file) return;
+
   const reader = new FileReader();
   reader.onload = () => {
+    const target = e.target;
+
+    // Logo replacement
+    if(target.id === "logo-img") {
+      target.src = reader.result;
+      localStorage.setItem("craftThrillerLogo", reader.result);
+      return;
+    }
+
+    // Banner replacement
+    if(target.id === "banner-img") {
+      target.src = reader.result;
+      localStorage.setItem("craftThrillerBanner", reader.result);
+      return;
+    }
+
+    // Background replacement
+    if(target.id === "body-bg" || target === document.body) {
+      document.body.style.backgroundImage = `url(${reader.result})`;
+      localStorage.setItem("craftThrillerBackground", reader.result);
+      return;
+    }
+
+    // Artwork replacement
+    const media = target.closest("img, video");
+    if(!media) return;
+
     const index = media.dataset.index;
     if(file.type.startsWith("video/")) {
       artworks[index].type = "video";
@@ -98,8 +179,10 @@ document.addEventListener("drop", e => {
       artworks[index].src = reader.result;
       media.src = reader.result;
     }
+
     localStorage.setItem("craftThrillerContent", JSON.stringify(artworks));
   };
+
   reader.readAsDataURL(file);
 });
 
@@ -115,18 +198,12 @@ function createVideoElement(src, index){
   return video;
 }
 
-// --- VIDEO AUTOPLAY ON SCROLL ---
-const videoObserver = new IntersectionObserver(entries => {
-  entries.forEach(entry => {
-    const video = entry.target;
-    if(entry.isIntersecting && entry.intersectionRatio>0.6) video.play().catch(()=>{});
-    else video.pause();
-  });
-},{threshold:[0.6]});
-
-// --- SAVE CONTENT / VERSION HISTORY ---
+// ================================
+// SAVE / VERSION HISTORY / EXPORT / NEW ARTWORK
+// ================================
 document.addEventListener("keydown", e => {
   if(!editMode) return;
+
   if(e.ctrlKey && e.key==="s"){ e.preventDefault(); saveEdits(); }
   if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==="e"){ exportContent(); }
   if(e.ctrlKey && e.shiftKey && e.key.toLowerCase()==="r"){ restoreLastVersion(); }
@@ -136,7 +213,8 @@ document.addEventListener("keydown", e => {
 function saveEdits(){
   const snapshot = {timestamp: new Date().toISOString(), artworks: JSON.parse(JSON.stringify(artworks))};
   const history = JSON.parse(localStorage.getItem("craftThrillerHistory"))||[];
-  history.push(snapshot); if(history.length>10) history.shift();
+  history.push(snapshot);
+  if(history.length>10) history.shift();
   localStorage.setItem("craftThrillerHistory", JSON.stringify(history));
   localStorage.setItem("craftThrillerContent", JSON.stringify(artworks));
   alert("Saved. Version snapshot created.");
@@ -161,7 +239,6 @@ function createNewArtwork(){
   alert("New artwork created. Edit text and drop an image/video.");
 }
 
-// --- EXPORT CONTENT ---
 function exportContent(){
   const data = {brand:"The Craft Thriller", exportedAt: new Date().toISOString(), artworks};
   const blob = new Blob([JSON.stringify(data,null,2)], {type:"application/json"});
