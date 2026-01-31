@@ -11,8 +11,5 @@ body{margin:0;font-family:'Playfair Display',serif;background:#0b1f1a;color:#e6e
 .brand{display:flex;align-items:center;gap:0.8rem;}
 .brand img{width:42px;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.4));}
 .brand h1{font-size:1.6rem;}
-.filter-bar{margin-top:0.8rem;}
-.filter-bar button{margin:0 0.2rem;padding:0.4rem 0.8rem;background:#e6e2d3;color:#1c4032;border:none;border-radius:8px;cursor:pointer;transition:0.3s;}
-.filter-bar button:hover{transform:scale(1.05);}
 .about-section, .collab-section{margin:3rem 1rem;padding:2rem;backdrop-filter:blur(18px);background:rgba(28,64,50,0.55);border-radius:24px;}
 .collab-note{margin-top:1rem;font-style:italic;opacity:0.9;}
