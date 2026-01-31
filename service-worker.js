@@ -1,0 +1,10 @@
+const CACHE_NAME = "craft-thriller-cache-v1";
+const urlsToCache = ["index.html","landing.html","styles.css","app.js","content.js","manifest.json"];
+
+self.addEventListener("install", e => {
+  e.waitUntil(caches.open(CACHE_NAME).then(cache => cache.addAll(urlsToCache)));
+});
+
+self.addEventListener("fetch", e => {
+  e.respondWith(caches.match(e.request).then(resp => resp || fetch(e.request)));
+});
