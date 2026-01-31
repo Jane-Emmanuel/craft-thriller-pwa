@@ -8,11 +8,9 @@ if (saved) artworks = JSON.parse(saved);
 
 const gallery = document.getElementById("gallery");
 
-function displayArtworks(filter="all") {
+function displayArtworks() {
   gallery.innerHTML = "";
   artworks.forEach((art, index) => {
-    if (filter !== "all" && art.category !== filter) return;
-
     const card = document.createElement("div");
     card.className = "art-card";
 
@@ -48,11 +46,6 @@ function displayArtworks(filter="all") {
   });
 }
 
-// FILTER BUTTONS
-document.querySelectorAll(".filter-bar button").forEach(btn => {
-  btn.addEventListener("click", () => displayArtworks(btn.dataset.filter));
-});
-
 // --- EDIT MODE UNLOCK ---
 document.addEventListener("keydown", (e) => {
   typed += e.key.toLowerCase();
@@ -67,7 +60,7 @@ function enableEditMode() {
   editMode = true;
   document.body.classList.add("edit-mode");
   alert("Edit Mode Enabled — The Craft Thriller");
-  displayArtworks("all");
+  displayArtworks();
 }
 
 // --- MOBILE GESTURE UNLOCK ---
@@ -156,15 +149,15 @@ function restoreLastVersion(){
   artworks = previous.artworks;
   localStorage.setItem("craftThrillerHistory", JSON.stringify(history));
   localStorage.setItem("craftThrillerContent", JSON.stringify(artworks));
-  displayArtworks("all");
+  displayArtworks();
   alert("Previous version restored.");
 }
 
 function createNewArtwork(){
-  const newArt = {title:"New Artwork Title", category:"custom", type:"image", src:"", story:"Write the story behind this artwork..."};
+  const newArt = {title:"New Artwork Title", type:"image", src:"", story:"Write the story behind this artwork..."};
   artworks.push(newArt);
   localStorage.setItem("craftThrillerContent", JSON.stringify(artworks));
-  displayArtworks("all");
+  displayArtworks();
   alert("New artwork created. Edit text and drop an image/video.");
 }
 
